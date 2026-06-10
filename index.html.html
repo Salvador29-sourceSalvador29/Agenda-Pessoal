@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Agenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #f5f3ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e2ddd7;
+    --border2: #ccc8c1;
+    --text: #1a1916;
+    --text2: #6b6760;
+    --text3: #a09d98;
+    --accent: #2d4a3e;
+    --accent2: #4a7c68;
+    --accent-light: #e8f0ec;
+    --red: #c0392b;
+    --red-light: #fdf0ee;
+    --amber: #b7791f;
+    --amber-light: #fef9ec;
+    --green: #276749;
+    --green-light: #edf7f2;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .app-header h1 { font-size: 17px; font-weight: 500; letter-spacing: 0.01em; }
+  .app-header .header-sub { font-size: 12px; opacity: 0.65; margin-top: 1px; font-family: 'DM Mono', monospace; }
+  .btn-new {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 0 14px;
+    height: 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+  }
+  .btn-new:hover { background: rgba(255,255,255,0.28); }
+  .header-actions { display: flex; gap: 6px; align-items: center; }
+  .btn-icon-hdr {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    border-radius: var(--radius);
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px;
+    transition: background 0.15s;
+  }
+  .btn-icon-hdr:hover { background: rgba(255,255,255,0.28); }
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: #fff; font-size: 13px; font-weight: 500;
+    padding: 10px 20px; border-radius: var(--radius); z-index: 999;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+
+  /* MAIN */
+  .main { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 4rem; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 3px; margin-bottom: 1.25rem; }
+  .tab-btn { flex: 1; padding: 7px 0; border: none; background: transparent; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+  .tab-btn.active { background: var(--accent); color: #fff; }
+
+  /* NAV */
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .cal-nav h2 { font-size: 16px; font-weight: 500; }
+  .icon-btn { width: 34px; height: 34px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; transition: background 0.12s; }
+  .icon-btn:hover { background: var(--surface2); }
+
+  /* CALENDAR GRID */
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .day-label { text-align: center; font-size: 11px; font-weight: 500; color: var(--text3); padding: 6px 0; font-family: 'DM Mono', monospace; }
+  .day-cell { min-height: 70px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px; cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+  .day-cell:hover { border-color: var(--border2); background: var(--surface2); }
+  .day-cell.other { opacity: 0.38; }
+  .day-cell.today .day-num { background: var(--accent); color: #fff; border-radius: 50%; }
+  .day-cell.selected { border-color: var(--accent2); background: var(--accent-light); }
+  .day-num { font-size: 12px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 3px; font-family: 'DM Mono', monospace; }
+  .pill { font-size: 9px; font-weight: 600; border-radius: 4px; padding: 1px 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; text-transform: uppercase; }
+  .pill-alta { background: var(--red-light); color: var(--red); }
+  .pill-media { background: var(--amber-light); color: var(--amber); }
+  .pill-baixa { background: var(--green-light); color: var(--green); }
+  .more { font-size: 10px; color: var(--text3); font-family: 'DM Mono', monospace; }
+
+  /* EVENT CARDS */
+  .date-group { margin-bottom: 1.5rem; }
+  .date-heading { font-size: 12px; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 8px; padding-left: 2px; }
+  .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 13px 14px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 6px; transition: border-color 0.12s; }
+  .event-card:hover { border-color: var(--border2); }
+  .ev-bar { width: 3px; border-radius: 3px; align-self: stretch; flex-shrink: 0; }
+  .ev-info { flex: 1; min-width: 0; }
+  .ev-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ev-meta { font-size: 12px; color: var(--text2); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .ev-meta i { font-size: 12px; vertical-align: -1px; }
+  .badge { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 5px; padding: 2px 7px; }
+  .badge-alta { background: var(--red-light); color: var(--red); }
+  .badge-media { background: var(--amber-light); color: var(--amber); }
+  .badge-baixa { background: var(--green-light); color: var(--green); }
+  .ev-actions { display: flex; gap: 4px; }
+  .act-btn { width: 28px; height: 28px; border: none; background: transparent; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 15px; transition: background 0.12s, color 0.12s; }
+  .act-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--text3); }
+  .empty i { font-size: 32px; display: block; margin-bottom: 10px; }
+  .empty p { font-size: 14px; }
+
+  /* SELECTED DAY PANEL */
+  .day-panel { margin-top: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; }
+  .day-panel-title { font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .day-panel-close { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 16px; }
+
+  /* MODAL */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 1.5rem; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 1.25rem; color: var(--text); }
+  .form-group { margin-bottom: 13px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent2); }
+  .form-group textarea { resize: vertical; min-height: 64px; }
+  .form-row { display: flex; gap: 8px; }
+  .form-row .form-group { flex: 1; }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.25rem; }
+  .btn-cancel { background: transparent; border: 1px solid var(--border); border-radius: var(--radius); padding: 0 14px; height: 36px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text2); cursor: pointer; }
+  .btn-save { background: var(--accent); border: none; border-radius: var(--radius); padding: 0 18px; height: 36px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #fff; cursor: pointer; transition: background 0.15s; }
+  .btn-save:hover { background: var(--accent2); }
+
+  /* Color selector */
+  .color-row { display: flex; gap: 8px; }
+  .c-chip { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color 0.12s; }
+  .c-chip.sel { border-color: var(--text); }
+
+  @media (max-width: 480px) {
+    .app-header h1 { font-size: 15px; }
+    .main { padding: 1rem 0.5rem 4rem; }
+    .day-cell { min-height: 54px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <div class="app-header h1">📋 Minha Agenda</div>
+    <div class="header-sub" id="today-label"></div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon-hdr" onclick="exportEvents()" title="Exportar eventos"><i class="ti ti-download"></i></button>
+    <label class="btn-icon-hdr" title="Importar eventos" style="cursor:pointer">
+      <i class="ti ti-upload"></i>
+      <input type="file" accept=".json" id="import-input" style="display:none" onchange="importEvents(event)">
+    </label>
+    <button class="btn-new" onclick="openModal(null, '')">
+      <i class="ti ti-plus"></i> Novo evento
+    </button>
+  </div>
+</header>
+
+<div class="toast" id="toast"></div>
+
+<div class="main">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-cal" onclick="setTab('cal')">Calendário</button>
+    <button class="tab-btn" id="tab-list" onclick="setTab('list')">Próximos eventos</button>
+  </div>
+
+  <div id="view-cal">
+    <div class="cal-nav">
+      <button class="icon-btn" onclick="prevMonth()"><i class="ti ti-chevron-left"></i></button>
+      <h2 id="month-title"></h2>
+      <button class="icon-btn" onclick="nextMonth()"><i class="ti ti-chevron-right"></i></button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div id="day-panel-wrap"></div>
+  </div>
+
+  <div id="view-list" style="display:none">
+    <div id="list-content"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="handleOverlay(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="modal-title-text">Novo evento</h3>
+    <input type="hidden" id="editing-id">
+    <input type="hidden" id="sel-color" value="green">
+    <div class="form-group">
+      <label>Título</label>
+      <input type="text" id="f-title" placeholder="Nome do evento">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Horário</label>
+        <input type="time" id="f-time">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="f-cat">
+          <option>Saúde</option><option>OAB</option><option>Pessoal</option><option>Trabalho</option>
+          <option>Financeiro</option><option>Lazer</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Prioridade</label>
+        <select id="f-pri">
+          <option>Alta</option><option>Média</option><option>Baixa</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Cor</label>
+      <div class="color-row" id="color-chips"></div>
+    </div>
+    <div class="form-group">
+      <label>Anotações</label>
+      <textarea id="f-notes" placeholder="Local, detalhes, lembretes..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveEvent()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  { key:'green',  hex:'#276749' },
+  { key:'red',    hex:'#c0392b' },
+  { key:'amber',  hex:'#b7791f' },
+  { key:'blue',   hex:'#1a5276' },
+  { key:'purple', hex:'#6c3483' },
+  { key:'gray',   hex:'#5d6d7e' },
+];
+const BAR_COLORS = { green:'#276749', red:'#c0392b', amber:'#b7791f', blue:'#1a5276', purple:'#6c3483', gray:'#5d6d7e' };
+const PILL_CLASS = { Alta:'pill-alta', Média:'pill-media', Baixa:'pill-baixa' };
+const BADGE_CLASS = { Alta:'badge-alta', Média:'badge-media', Baixa:'badge-baixa' };
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+const DEFAULT_EVENTS = [
+  { id:'e1',  title:'Pegar medicação na Liberdade',                    date:'2026-05-28', time:'',      category:'Saúde',   priority:'Alta',  color:'red',    notes:'Levar a receita' },
+  { id:'e2',  title:'Marcar exame',                                    date:'2026-05-28', time:'',      category:'Saúde',   priority:'Média', color:'amber',  notes:'Exame a ser marcado para junho — pela manhã' },
+  { id:'e3',  title:'Pegar Certificado de Inglês',                     date:'2026-05-30', time:'10:00', category:'Pessoal', priority:'Alta',  color:'blue',   notes:'' },
+  { id:'e4',  title:'Endocrinologista',                                date:'2026-06-02', time:'08:00', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Local: Sedap' },
+  { id:'e25', title:'Marcar Nutricionista',                            date:'2026-06-02', time:'',      category:'Saúde',   priority:'Média', color:'green',  notes:'Local: Centro Médico Liberdade' },
+  { id:'e26', title:'Marcar Dentista',                                 date:'2026-06-02', time:'11:00', category:'Saúde',   priority:'Média', color:'amber',  notes:'' },
+  { id:'e27', title:'Mercado',                                         date:'2026-06-03', time:'09:00', category:'Pessoal', priority:'Média', color:'green',  notes:'' },
+  { id:'e28', title:'Defensoria Pública — Triagem Saúde Presencial',   date:'2026-06-03', time:'14:20', category:'Saúde',   priority:'Alta',  color:'blue',   notes:'Situação: AGENDADO | Especialidade: Atendimento Triagem Saúde Presencial | Local: Casa de Acesso à Justiça - Jardim Baiano | Endereço: Rua Arquimedes Gonçalves, 271, Jardim Baiano, Nazaré, Salvador-BA | Levar documentos originais e xerox | Consulta de Colonoscopia' },
+  { id:'e5',  title:'OAB 47° — Inscrições abertas',                    date:'2026-06-01', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Período de inscrições: 01/06 a 08/06/2026' },
+  { id:'e6',  title:'OAB 47° — Fim das inscrições',                    date:'2026-06-08', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Último dia de inscrição — 47° Exame de Ordem' },
+  { id:'e36', title:'Tomar informações',                               date:'2026-06-11', time:'09:30', category:'Pessoal',  priority:'Média', color:'blue',   notes:'Local: SEDUR' },
+  { id:'e37', title:'Trocar data de Exame',                            date:'2026-06-11', time:'10:30', category:'Saúde',    priority:'Alta',  color:'red',    notes:'Local: SEDAP' },
+  { id:'e38', title:'Farmácia',                                        date:'2026-06-11', time:'11:00', category:'Saúde',    priority:'Média', color:'amber',  notes:'' },
+  { id:'e29', title:'🇧🇷 Jogo do Brasil',                               date:'2026-06-13', time:'19:00', category:'Lazer',   priority:'Alta',  color:'green',  notes:'Assistir o Jogo do Brasil' },
+  { id:'e30', title:'OAB 47° — Resultado isenção de taxa',             date:'2026-07-06', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Resultado preliminar da análise dos pedidos de isenção de taxa de inscrição divulgado até esta data. Consultar em: http://oab.fgv.br' },
+  { id:'e39', title:'Exame de Sangue',                                 date:'2026-07-06', time:'07:00', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Local: Liberdade' },
+  { id:'e7',  title:'Pegar receita',                                   date:'2026-07-10', time:'13:00', category:'Saúde',   priority:'Média', color:'amber',  notes:'Local: Mario Leal' },
+  { id:'e8',  title:'Médico Dermatologista',                           date:'2026-07-20', time:'',      category:'Saúde',   priority:'Média', color:'red',    notes:'' },
+  { id:'e10', title:'Exame de PSA',                                    date:'2026-08-10', time:'',      category:'Saúde',   priority:'Alta',  color:'red',    notes:'' },
+  { id:'e11', title:'Médico Urologista',                               date:'2026-08-20', time:'07:00', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Local: Hospital Santa Isabel' },
+  { id:'e31', title:'Ultrassom Abdome Total',                          date:'2026-08-20', time:'09:54', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Local: CEDAP' },
+  { id:'e32', title:'OAB 47° — Locais da prova objetiva divulgados',   date:'2026-08-31', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Locais de realização da prova objetiva divulgados em: http://oab.fgv.br' },
+  { id:'e33', title:'Pegar remédio',                                   date:'2026-08-31', time:'',      category:'Saúde',   priority:'Média', color:'amber',  notes:'Local: Liberdade' },
+  { id:'e9',  title:'OAB 47° — 1ª fase (prova objetiva)',              date:'2026-09-06', time:'13:00', category:'OAB',     priority:'Alta',  color:'purple', notes:'47° Exame de Ordem — 1ª fase | Duração: 13h às 18h | Consultar local em: http://oab.fgv.br' },
+  { id:'e34', title:'Fazer exame de sangue',                           date:'2026-10-01', time:'07:00', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Local: CEDAP' },
+  { id:'e12', title:'OAB 47° — 2ª fase (prova prático-profissional)',  date:'2026-10-18', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'47° Exame de Ordem — 2ª fase' },
+  { id:'e13', title:'OAB 48° — Inscrições abertas',                    date:'2026-09-28', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Período de inscrições: 28/09 a 05/10/2026' },
+  { id:'e14', title:'OAB 48° — Fim das inscrições',                    date:'2026-10-05', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Último dia de inscrição — 48° Exame de Ordem' },
+  { id:'e35', title:'Consulta Endocrinologista Dra. Andreza Cristina', date:'2026-11-17', time:'07:30', category:'Saúde',   priority:'Alta',  color:'red',    notes:'Levar exames | Local: CEDAP' },
+  { id:'e15', title:'OAB 48° — 1ª fase (prova objetiva)',              date:'2027-01-10', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'48° Exame de Ordem — 1ª fase' },
+  { id:'e17', title:'OAB 49° — Inscrições abertas',                    date:'2027-01-29', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Período de inscrições: 29/01 a 05/02/2027' },
+  { id:'e16', title:'OAB 48° — 2ª fase (prova prático-profissional)',  date:'2027-02-28', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'48° Exame de Ordem — 2ª fase' },
+  { id:'e18', title:'OAB 49° — Fim das inscrições',                    date:'2027-02-05', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Último dia de inscrição — 49° Exame de Ordem' },
+  { id:'e19', title:'OAB 49° — 1ª fase (prova objetiva)',              date:'2027-05-09', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'49° Exame de Ordem — 1ª fase' },
+  { id:'e21', title:'OAB 50° — Inscrições abertas',                    date:'2027-06-07', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Período de inscrições: 07/06 a 14/06/2027' },
+  { id:'e20', title:'OAB 49° — 2ª fase (prova prático-profissional)',  date:'2027-07-04', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'49° Exame de Ordem — 2ª fase' },
+  { id:'e22', title:'OAB 50° — Fim das inscrições',                    date:'2027-06-14', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'Último dia de inscrição — 50° Exame de Ordem' },
+  { id:'e23', title:'OAB 50° — 1ª fase (prova objetiva)',              date:'2027-09-12', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'50° Exame de Ordem — 1ª fase' },
+  { id:'e24', title:'OAB 50° — 2ª fase (prova prático-profissional)',  date:'2027-10-31', time:'',      category:'OAB',     priority:'Alta',  color:'purple', notes:'50° Exame de Ordem — 2ª fase' },
+];
+
+let events = [];
+try {
+  const s = localStorage.getItem('minha_agenda_v1');
+  events = s ? JSON.parse(s) : [...DEFAULT_EVENTS];
+  if (!s) save();
+} catch(e) { events = [...DEFAULT_EVENTS]; }
+
+function save() {
+  try { localStorage.setItem('minha_agenda_v1', JSON.stringify(events)); } catch(e) {}
+}
+
+const today = new Date();
+let vy = today.getFullYear(), vm = today.getMonth();
+let selDate = null, activeTab = 'cal';
+
+function ds(y,m,d) { return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+function todayStr() { return ds(today.getFullYear(), today.getMonth(), today.getDate()); }
+function parseDate(s) { if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDate(s) {
+  const d = parseDate(s); if(!d) return s;
+  return d.getDate()+' de '+MONTHS[d.getMonth()]+' de '+d.getFullYear();
+}
+function fmtWeekday(s) {
+  const d = parseDate(s); if(!d) return '';
+  return DAYS[d.getDay()];
+}
+function eventsOn(d) { return events.filter(e=>e.date===d); }
+function upcomingEvents() {
+  const t = todayStr();
+  return [...events].filter(e=>e.date>=t).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+}
+
+function setTab(t) {
+  activeTab = t;
+  document.getElementById('tab-cal').classList.toggle('active', t==='cal');
+  document.getElementById('tab-list').classList.toggle('active', t==='list');
+  document.getElementById('view-cal').style.display = t==='cal' ? '' : 'none';
+  document.getElementById('view-list').style.display = t==='list' ? '' : 'none';
+  if (t==='list') renderList();
+}
+
+function prevMonth() { vm--; if(vm<0){vm=11;vy--;} renderCal(); }
+function nextMonth() { vm++; if(vm>11){vm=0;vy++;} renderCal(); }
+
+function renderCal() {
+  document.getElementById('month-title').textContent = MONTHS[vm]+' '+vy;
+  const firstDay = new Date(vy, vm, 1).getDay();
+  const daysInMonth = new Date(vy, vm+1, 0).getDate();
+  const daysInPrev = new Date(vy, vm, 0).getDate();
+  let html = DAYS.map(d=>`<div class="day-label">${d}</div>`).join('');
+  for (let i=firstDay-1; i>=0; i--) {
+    html += `<div class="day-cell other"><div class="day-num">${daysInPrev-i}</div></div>`;
+  }
+  for (let d=1; d<=daysInMonth; d++) {
+    const dstr = ds(vy,vm,d);
+    const isToday = dstr===todayStr();
+    const isSel = dstr===selDate;
+    const evs = eventsOn(dstr);
+    let pills = evs.slice(0,2).map(e=>`<div class="pill ${PILL_CLASS[e.priority]||'pill-media'}" onclick="clickPill('${e.id}',event)">${e.title}</div>`).join('');
+    if(evs.length>2) pills+=`<div class="more">+${evs.length-2}</div>`;
+    html += `<div class="day-cell${isToday?' today':''}${isSel?' selected':''}" onclick="selectDay('${dstr}')">
+      <div class="day-num">${d}</div>${pills}
+    </div>`;
+  }
+  const total = firstDay+daysInMonth;
+  const rem = total%7===0?0:7-(total%7);
+  for(let d=1;d<=rem;d++) html+=`<div class="day-cell other"><div class="day-num">${d}</div></div>`;
+  document.getElementById('cal-grid').innerHTML = html;
+  renderDayPanel();
+}
+
+function selectDay(d) {
+  selDate = selDate===d ? null : d;
+  renderCal();
+}
+function clickPill(id, e) { e.stopPropagation(); openModal(id, null); }
+
+function renderDayPanel() {
+  const wrap = document.getElementById('day-panel-wrap');
+  if (!selDate) { wrap.innerHTML=''; return; }
+  const evs = eventsOn(selDate);
+  wrap.innerHTML = `<div class="day-panel">
+    <div class="day-panel-title">
+      <span>${fmtWeekday(selDate)}, ${fmtDate(selDate)}</span>
+      <button class="day-panel-close" onclick="selDate=null;renderCal()"><i class="ti ti-x"></i></button>
+    </div>
+    ${renderCards(evs, 'Nenhum evento neste dia.')}
+    <div style="margin-top:10px">
+      <button class="btn-new" style="background:var(--accent);border:none;font-family:DM Sans,sans-serif;font-size:13px;height:34px;border-radius:8px;padding:0 14px;cursor:pointer;color:#fff;display:inline-flex;align-items:center;gap:6px" onclick="openModal(null,'${selDate}')"><i class="ti ti-plus"></i> Adicionar neste dia</button>
+    </div>
+  </div>`;
+}
+
+function renderCards(items, emptyMsg) {
+  if (!items.length) return `<div class="empty"><i class="ti ti-calendar-off"></i><p>${emptyMsg}</p></div>`;
+  return items.sort((a,b)=>(a.time||'').localeCompare(b.time||'')).map(e=>`
+    <div class="event-card">
+      <div class="ev-bar" style="background:${BAR_COLORS[e.color]||'#276749'}"></div>
+      <div class="ev-info">
+        <div class="ev-title">
+          ${e.title}
+          <span class="badge ${BADGE_CLASS[e.priority]||'badge-media'}">${e.priority}</span>
+        </div>
+        <div class="ev-meta">
+          ${e.time?`<span><i class="ti ti-clock"></i> ${e.time}</span>`:''}
+          ${e.category?`<span><i class="ti ti-tag"></i> ${e.category}</span>`:''}
+          ${e.notes?`<span><i class="ti ti-notes"></i> ${e.notes}</span>`:''}
+        </div>
+      </div>
+      <div class="ev-actions">
+        <button class="act-btn" onclick="openModal('${e.id}',null)" title="Editar"><i class="ti ti-edit"></i></button>
+        <button class="act-btn" onclick="delEvent('${e.id}')" title="Excluir"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function renderList() {
+  const up = upcomingEvents();
+  if (!up.length) {
+    document.getElementById('list-content').innerHTML = `<div class="empty"><i class="ti ti-calendar-off"></i><p>Nenhum evento futuro.</p></div>`;
+    return;
+  }
+  let grouped = {};
+  up.forEach(e=>{ if(!grouped[e.date]) grouped[e.date]=[]; grouped[e.date].push(e); });
+  let html = '';
+  Object.keys(grouped).sort().forEach(d=>{
+    html += `<div class="date-group"><div class="date-heading">${fmtWeekday(d)} · ${fmtDate(d)}</div>${renderCards(grouped[d],'')}</div>`;
+  });
+  document.getElementById('list-content').innerHTML = html;
+}
+
+function delEvent(id) {
+  if (!confirm('Excluir este evento?')) return;
+  events = events.filter(e=>e.id!==id);
+  save(); renderCal();
+  if (activeTab==='list') renderList();
+}
+
+// Modal
+function buildChips(selected) {
+  document.getElementById('color-chips').innerHTML = COLORS.map(c=>`
+    <div class="c-chip${c.key===selected?' sel':''}" style="background:${c.hex}" data-key="${c.key}" onclick="pickColor('${c.key}')"></div>
+  `).join('');
+  document.getElementById('sel-color').value = selected;
+}
+function pickColor(key) {
+  document.getElementById('sel-color').value = key;
+  document.querySelectorAll('.c-chip').forEach(c=>c.classList.toggle('sel', c.dataset.key===key));
+}
+
+function openModal(id, date) {
+  const ev = id ? events.find(e=>e.id===id) : null;
+  document.getElementById('modal-title-text').textContent = ev ? 'Editar evento' : 'Novo evento';
+  document.getElementById('editing-id').value = id||'';
+  document.getElementById('f-title').value = ev ? ev.title : '';
+  document.getElementById('f-date').value = ev ? ev.date : (date || ds(vy,vm,today.getDate()));
+  document.getElementById('f-time').value = ev ? (ev.time||'') : '';
+  document.getElementById('f-notes').value = ev ? (ev.notes||'') : '';
+  document.getElementById('f-cat').value = ev ? (ev.category||'Saúde') : 'Saúde';
+  document.getElementById('f-pri').value = ev ? (ev.priority||'Alta') : 'Alta';
+  buildChips(ev ? (ev.color||'green') : 'green');
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-title').focus(), 80);
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function handleOverlay(e) { if(e.target===document.getElementById('overlay')) closeModal(); }
+
+function saveEvent() {
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) { alert('Adicione um título ao evento.'); return; }
+  const id = document.getElementById('editing-id').value;
+  const ev = {
+    id: id || Date.now().toString(),
+    title,
+    date: document.getElementById('f-date').value,
+    time: document.getElementById('f-time').value,
+    category: document.getElementById('f-cat').value,
+    priority: document.getElementById('f-pri').value,
+    color: document.getElementById('sel-color').value,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+  if (id) { const i=events.findIndex(e=>e.id===id); if(i!==-1) events[i]=ev; }
+  else events.push(ev);
+  save();
+  closeModal();
+  selDate = ev.date;
+  renderCal();
+  if (activeTab==='list') renderList();
+}
+
+// Export / Import
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function exportEvents() {
+  const data = JSON.stringify(events, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date();
+  a.download = `agenda_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Eventos exportados com sucesso!');
+}
+
+function importEvents(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error();
+      // merge: skip duplicates by id
+      const existingIds = new Set(events.map(e=>e.id));
+      let added = 0;
+      imported.forEach(ev => {
+        if (!existingIds.has(ev.id)) { events.push(ev); added++; }
+      });
+      save(); renderCal();
+      if (activeTab==='list') renderList();
+      showToast(`✅ ${added} evento(s) importado(s)!`);
+    } catch(err) {
+      showToast('❌ Arquivo inválido. Use um JSON exportado desta agenda.');
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// INIT
+document.getElementById('today-label').textContent = today.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+renderCal();
+</script>
+</body>
+</html>
